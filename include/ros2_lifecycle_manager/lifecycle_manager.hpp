@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "bondcpp/bond.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "ros2_lifecycle_manager_msgs/srv/manage_lifecycle_nodes.hpp"
 #include "ros2_utils/lifecycle_service_client.hpp"
@@ -71,17 +70,10 @@ protected:
     const std::shared_ptr<ManageLifecycleNodes::Request> request,
     std::shared_ptr<ManageLifecycleNodes::Response> response);
 
-  // Timer to look at bond connections
   rclcpp::TimerBase::SharedPtr init_timer_;
-  rclcpp::TimerBase::SharedPtr bond_timer_;
-  std::chrono::milliseconds bond_timeout_;
-
-  // A map of all nodes to check bond connection
-  std::map<std::string, std::shared_ptr<bond::Bond>> bond_map_;
 
   // A map of all nodes to be controlled
   std::map<std::string, std::shared_ptr<ros2_utils::LifecycleServiceClient>> node_map_;
-
   std::map<std::uint8_t, std::string> transition_label_map_;
 
   // A map of the expected transitions to primary states

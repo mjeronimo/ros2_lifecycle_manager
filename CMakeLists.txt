@@ -3,7 +3,6 @@ project(ros2_lifecycle_manager)
 
 find_package(ament_cmake REQUIRED)
 
-find_package(bondcpp REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
@@ -31,7 +30,6 @@ add_library(${library_name} SHARED
 )
 
 set(dependencies
-  bondcpp
   lifecycle_msgs
   rclcpp
   rclcpp_action
