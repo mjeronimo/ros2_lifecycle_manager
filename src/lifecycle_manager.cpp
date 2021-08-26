@@ -80,10 +80,6 @@ LifecycleManager::LifecycleManager()
     });
 }
 
-LifecycleManager::~LifecycleManager()
-{
-}
-
 void
 LifecycleManager::managerCallback(
   const std::shared_ptr<rmw_request_id_t>/*request_header*/,
@@ -192,8 +188,8 @@ LifecycleManager::startup()
     RCLCPP_ERROR(get_logger(), "Failed to bring up all requested nodes. Aborting bringup.");
     return false;
   }
-  RCLCPP_INFO(get_logger(), "Managed nodes are active");
 
+  RCLCPP_INFO(get_logger(), "Managed nodes are active");
   return true;
 }
 
@@ -203,8 +199,8 @@ LifecycleManager::shutdown()
   RCLCPP_INFO(get_logger(), "Shutting down managed nodes...");
   shutdownAllNodes();
   destroyLifecycleServiceClients();
-  RCLCPP_INFO(get_logger(), "Managed nodes have been shut down");
 
+  RCLCPP_INFO(get_logger(), "Managed nodes have been shut down");
   return true;
 }
 
@@ -232,8 +228,8 @@ LifecycleManager::pause()
     RCLCPP_ERROR(get_logger(), "Failed to pause nodes: aborting pause");
     return false;
   }
-  RCLCPP_INFO(get_logger(), "Managed nodes have been paused");
 
+  RCLCPP_INFO(get_logger(), "Managed nodes have been paused");
   return true;
 }
 

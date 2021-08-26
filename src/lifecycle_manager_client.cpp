@@ -20,6 +20,7 @@
 namespace ros2_lifecycle_manager
 {
 
+// TODO(mjeronimo): Use the node interfaces in the constructor (or add another constructor)
 LifecycleManagerClient::LifecycleManagerClient(
   const std::string & managed_node_name,
   std::shared_ptr<rclcpp::Node> parent_node)
@@ -74,6 +75,7 @@ LifecycleManagerClient::call_service(uint8_t command, const std::chrono::nanosec
     node_->get_logger(), "Waiting for the %s service...",
     manage_service_name_.c_str());
 
+  // TODO(mjeronimo): should timeout overall and return rather than print and loop
   while (!lifecycle_manager_client_->wait_for_service(timeout)) {
     if (!rclcpp::ok()) {
       RCLCPP_ERROR(

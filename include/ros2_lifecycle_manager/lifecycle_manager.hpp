@@ -38,7 +38,6 @@ class LifecycleManager : public rclcpp::Node
 {
 public:
   LifecycleManager();
-  ~LifecycleManager();
 
 protected:
   // The ROS node to use when calling lifecycle services
