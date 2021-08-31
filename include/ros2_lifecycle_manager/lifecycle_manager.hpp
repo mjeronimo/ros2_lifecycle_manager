@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "ros2_lifecycle_manager_msgs/srv/manage_lifecycle_nodes.hpp"
 #include "ros2_utils/lifecycle_service_client.hpp"
 #include "ros2_utils/node_thread.hpp"
@@ -31,17 +32,21 @@ namespace ros2_lifecycle_manager
 
 using ros2_lifecycle_manager_msgs::srv::ManageLifecycleNodes;
 
-// The LifecycleManager implements the service interface to transition managed nodes.
-// It receives a transition request and then uses the managed node's lifecycle
-// interface to change its state.
-class LifecycleManager : public rclcpp::Node
+// The LifecycleManager provides services to transition the states of managed nodes
+class LifecycleManager
 {
 public:
-  LifecycleManager();
+  LifecycleManager() = delete;
 
-protected:
-  // The ROS node to use when calling lifecycle services
-  rclcpp::Node::SharedPtr service_client_node_;
+  LifecycleManager(rclcpp::Node::SharedPtr node);
+  LifecycleManager(rclcpp_lifecycle::LifecycleNode::SharedPtr node);
+
+  LifecycleManager(
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base,
+    rclcpp::node_interfaces::NodeParametersInterface::SharedPtr node_params,
+    rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr node_logging,
+    rclcpp::node_interfaces::NodeTimersInterface::SharedPtr node_timers,
+    rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services);
 
   bool startup();
   bool shutdown();
@@ -49,25 +54,54 @@ protected:
   bool pause();
   bool resume();
 
-  void createLifecycleServiceClients();
-  void destroyLifecycleServiceClients();
-
-  void createBondTimer();
-  void destroyBondTimer();
-  bool createBondConnection(const std::string & node_name);
-  void checkBondConnections();
-
-  bool changeStateForNode(const std::string & node_name, std::uint8_t transition);
-  bool changeStateForAllNodes(std::uint8_t transition);
-  void shutdownAllNodes();
-
-  // The services provided by this node
-  rclcpp::Service<ManageLifecycleNodes>::SharedPtr manager_srv_;
-
-  void managerCallback(
+protected:
+  void manager_callback(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<ManageLifecycleNodes::Request> request,
     std::shared_ptr<ManageLifecycleNodes::Response> response);
+
+  void create_lifecycle_service_clients();
+  void destroy_lifecycle_service_clients();
+
+  bool change_state_for_node(const std::string & node_name, std::uint8_t transition);
+  bool change_state_for_all_nodes(std::uint8_t transition);
+
+  template<typename ServiceT, typename CallbackT>
+  typename rclcpp::Service<ServiceT>::SharedPtr
+  create_service(
+    const std::string & service_name,
+    CallbackT && callback,
+    const rmw_qos_profile_t & qos_profile = rmw_qos_profile_services_default,
+    rclcpp::CallbackGroup::SharedPtr group = nullptr)
+  {
+    return rclcpp::create_service<ServiceT, CallbackT>(
+      node_base_,
+      node_services_,
+      service_name,
+      std::forward<CallbackT>(callback),
+      qos_profile,
+      group);
+  }
+
+protected:
+  // Whether to automatically start up the system
+  bool autostart_{false};
+
+  // The names of the nodes to be managed, in the order of desired bring-up
+  std::vector<std::string> node_names_;
+
+  // The required node interfaces
+  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base_;
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr node_params_;
+  rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr node_logging_;
+  rclcpp::node_interfaces::NodeTimersInterface::SharedPtr node_timers_;
+  rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services_;
+
+  // The node to use when calling lifecycle services
+  rclcpp::Node::SharedPtr service_client_node_;
+
+  // The service provided by this node
+  rclcpp::Service<ManageLifecycleNodes>::SharedPtr manager_srv_;
 
   rclcpp::TimerBase::SharedPtr init_timer_;
 
@@ -77,12 +111,6 @@ protected:
 
   // A map of the expected transitions to primary states
   std::unordered_map<std::uint8_t, std::uint8_t> transition_state_map_;
-
-  // The names of the nodes to be managed, in the order of desired bring-up
-  std::vector<std::string> node_names_;
-
-  // Whether to automatically start up the system
-  bool autostart_{false};
 };
 
 }  // namespace ros2_lifecycle_manager

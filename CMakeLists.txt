@@ -42,28 +42,11 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
-add_executable(lifecycle_manager
-  src/main.cpp
-)
-
-target_link_libraries(lifecycle_manager
-  ${library_name}
-)
-
-ament_target_dependencies(lifecycle_manager
-  ${dependencies}
-)
-
 install(TARGETS
   ${library_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-)
-
-install(TARGETS
-  lifecycle_manager
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/ DESTINATION include/)
