@@ -34,21 +34,21 @@ namespace ros2_lifecycle_manager
 
 LifecycleManager::LifecycleManager(rclcpp::Node::SharedPtr node)
 : LifecycleManager(
-  node->get_node_base_interface(),
-  node->get_node_parameters_interface(),
-  node->get_node_logging_interface(),
-  node->get_node_timers_interface(),
-  node->get_node_services_interface())
+    node->get_node_base_interface(),
+    node->get_node_parameters_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_timers_interface(),
+    node->get_node_services_interface())
 {
 }
 
 LifecycleManager::LifecycleManager(rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 : LifecycleManager(
-  node->get_node_base_interface(),
-  node->get_node_parameters_interface(),
-  node->get_node_logging_interface(),
-  node->get_node_timers_interface(),
-  node->get_node_services_interface())
+    node->get_node_base_interface(),
+    node->get_node_parameters_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_timers_interface(),
+    node->get_node_services_interface())
 {
 }
 
@@ -58,7 +58,8 @@ LifecycleManager::LifecycleManager(
   rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr node_logging,
   rclcpp::node_interfaces::NodeTimersInterface::SharedPtr node_timers,
   rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services)
-: node_base_(node_base), node_params_(node_params), node_logging_(node_logging), node_timers_(node_timers), node_services_(node_services)
+: node_base_(node_base), node_params_(node_params), node_logging_(node_logging), node_timers_(
+    node_timers), node_services_(node_services)
 {
   // The list of names is parameterized, allowing this module to be used with a different set
   // of managed nodes. By default the node name list is empty.
@@ -67,15 +68,15 @@ LifecycleManager::LifecycleManager(
   node_params_->declare_parameter("autostart", rclcpp::ParameterValue(false));
 
   node_names_ = node_params_->get_parameter("node_names").as_string_array();
-  autostart_  = node_params_->get_parameter("autostart").as_bool();
+  autostart_ = node_params_->get_parameter("autostart").as_bool();
 
-  //manager_srv_ = node_->create_service<ManageLifecycleNodes>(
   manager_srv_ = create_service<ManageLifecycleNodes>(
     node_base_->get_name() + std::string("/manage_nodes"),
     std::bind(&LifecycleManager::manager_callback, this, _1, _2, _3));
 
   auto options = rclcpp::NodeOptions().arguments(
-    {"--ros-args", "-r", std::string("__node:=") + node_base_->get_name() + "_service_client", "--"});
+    {"--ros-args", "-r", std::string("__node:=") + node_base_->get_name() + "_service_client",
+      "--"});
   service_client_node_ = std::make_shared<rclcpp::Node>("_", options);
 
   transition_state_map_[Transition::TRANSITION_CONFIGURE] = State::PRIMARY_STATE_INACTIVE;
@@ -108,7 +109,7 @@ LifecycleManager::LifecycleManager(
     nullptr,
     node_base_.get(),
     node_timers_.get()
-    );
+  );
 }
 
 void
@@ -165,11 +166,15 @@ LifecycleManager::change_state_for_node(const std::string & node_name, std::uint
     if (!node_map_[node_name]->change_state(transition, 1s) ||
       !(node_map_[node_name]->get_state() == transition_state_map_[transition]))
     {
-      RCLCPP_ERROR(node_logging_->get_logger(), "Failed to change lifecycle node state: %s", node_name.c_str());
+      RCLCPP_ERROR(
+        node_logging_->get_logger(), "Failed to change lifecycle node state: %s",
+        node_name.c_str());
       return false;
     }
   } catch (std::runtime_error & e) {
-    RCLCPP_ERROR(node_logging_->get_logger(), "Failed to change lifecycle node state: %s", node_name.c_str());
+    RCLCPP_ERROR(
+      node_logging_->get_logger(), "Failed to change lifecycle node state: %s",
+      node_name.c_str());
     return false;
   }
 
@@ -203,13 +208,14 @@ LifecycleManager::startup()
 {
   RCLCPP_INFO(node_logging_->get_logger(), "Starting managed nodes bringup");
 
-  // TODO: enable this:
+  // TODO(mjeronimo): enable this here instead of in the constructor:
   // create_lifecycle_service_clients();
 
   if (!change_state_for_all_nodes(Transition::TRANSITION_CONFIGURE) ||
     !change_state_for_all_nodes(Transition::TRANSITION_ACTIVATE))
   {
-    RCLCPP_ERROR(node_logging_->get_logger(), "Failed to bring up all requested nodes. Aborting bringup.");
+    RCLCPP_ERROR(
+      node_logging_->get_logger(), "Failed to bring up all requested nodes. Aborting bringup.");
     return false;
   }
 

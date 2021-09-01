@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
@@ -38,8 +39,8 @@ class LifecycleManager
 public:
   LifecycleManager() = delete;
 
-  LifecycleManager(rclcpp::Node::SharedPtr node);
-  LifecycleManager(rclcpp_lifecycle::LifecycleNode::SharedPtr node);
+  explicit LifecycleManager(rclcpp::Node::SharedPtr node);
+  explicit LifecycleManager(rclcpp_lifecycle::LifecycleNode::SharedPtr node);
 
   LifecycleManager(
     rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base,
